@@ -1,0 +1,32 @@
+# Byte-compiled / optimized Python files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+.venv/
+.env
+
+# IDE files (if using PyCharm, VS Code, etc.)
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# Temporary files
+*.swp
+
+# Database
+db.sqlite3
+
+# Unit test / coverage reports
+.coverage
+htmlcov/
+
+# Compiled Python modules
+*.pyc
+*.pyo
