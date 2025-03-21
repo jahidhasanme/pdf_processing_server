@@ -30,3 +30,4 @@ htmlcov/
 # Compiled Python modules
 *.pyc
 *.pyo
+*.pem
