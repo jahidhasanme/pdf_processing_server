@@ -9,9 +9,12 @@ def create_app():
     
     CORS(app, resources={
         r"/*": {
-            "origins": "*",
-            "methods": ["*"],
-            "allow_headers": ["*"]
+            "origins": [
+                "https://openai4pdf.vercel.app",
+                "http://localhost:3000",
+            ],
+            "methods": ["GET", "POST", "PUT", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"]
         }
     })
     
