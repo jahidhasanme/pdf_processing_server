@@ -11,7 +11,8 @@ def create_app():
         r"/*": {
             "origins": [
                 "https://openai4pdf.vercel.app",
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "http://python.mswott.net",
             ],
             "methods": ["GET", "POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"]
