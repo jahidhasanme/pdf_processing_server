@@ -14,6 +14,9 @@ import tempfile
 import mimetypes
 
 
+nltk.download("punkt")
+nltk.download("punkt_tab")
+
 def extract_text_from_pdf(pdf_path):
     doc = fitz.open(pdf_path)
     return "\n".join([page.get_text("text") for page in doc])
