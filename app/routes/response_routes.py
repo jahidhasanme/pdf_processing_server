@@ -51,7 +51,7 @@ def get_extracted_relevant_text():
 
     top_n = data.get("top_n", 100)
 
-    algorithm_name = data.get("algorithm_name", "bm25")
+    algorithm_name = data.get("algorithm_name", "tf-idf")
 
     if not isinstance(data["path_of_files"], list) or len(data["path_of_files"]) == 0:
         return (

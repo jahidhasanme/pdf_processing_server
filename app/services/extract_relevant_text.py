@@ -7,7 +7,7 @@ import nltk
 from nltk.tokenize import sent_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from rank_bm25 import BM25Okapi
-# from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import SentenceTransformer, util
 from langdetect import detect
 from deep_translator import GoogleTranslator
 import requests
@@ -17,7 +17,7 @@ import mimetypes
 
 nltk.download("punkt")
 
-# model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 
 def extract_text_from_pdf(pdf_path):
@@ -68,12 +68,12 @@ def search_with_bm25(query, sentences, top_n=5):
     return [sentences[i] for i in sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_n]]
 
 
-# def search_with_similarity(query, sentences, top_n=5):
-#     query_embedding = model.encode(query, convert_to_tensor=True)
-#     sentence_embeddings = model.encode(sentences, convert_to_tensor=True)
-#     similarities = util.pytorch_cos_sim(query_embedding, sentence_embeddings)[0]
-#     top_results = similarities.argsort(descending=True)[:top_n]
-#     return [sentences[i] for i in top_results]
+def search_with_similarity(query, sentences, top_n=5):
+    query_embedding = model.encode(query, convert_to_tensor=True)
+    sentence_embeddings = model.encode(sentences, convert_to_tensor=True)
+    similarities = util.pytorch_cos_sim(query_embedding, sentence_embeddings)[0]
+    top_results = similarities.argsort(descending=True)[:top_n]
+    return [sentences[i] for i in top_results]
 
 
 def keyword_search(query, sentences, top_n=5):
@@ -147,8 +147,8 @@ def extract_relevant_text(prompt, path_of_files, top_n=100, algorithm_name="bm25
         return "\n".join(search_with_tfidf(translated_query, sentences, top_n))
     if algorithm_name == "bm25":
         return "\n".join(search_with_bm25(translated_query, sentences, top_n))
-    # elif algorithm_name == "context-based":
-    #     return "\n".join(search_with_similarity(translated_query, sentences, top_n))
+    elif algorithm_name == "context-based":
+        return "\n".join(search_with_similarity(translated_query, sentences, top_n))
     elif algorithm_name == "keyword":
         return "\n".join(keyword_search(translated_query, sentences, top_n))
     else:
