@@ -5,19 +5,13 @@ import markdown
 from bs4 import BeautifulSoup
 import nltk
 from nltk.tokenize import sent_tokenize
-from sklearn.feature_extraction.text import TfidfVectorizer
 from rank_bm25 import BM25Okapi
-from sentence_transformers import SentenceTransformer, util
 from langdetect import detect
 from deep_translator import GoogleTranslator
 import requests
 import os
 import tempfile
 import mimetypes
-
-nltk.download("punkt")
-
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 
 def extract_text_from_pdf(pdf_path):
@@ -48,16 +42,10 @@ def split_into_sentences(text):
 def translate_query(query, target_lang="en"):
     detected_lang = detect(query)
     if detected_lang != target_lang:
-        return GoogleTranslator(source=detected_lang, target=target_lang).translate(query)
+        return GoogleTranslator(source=detected_lang, target=target_lang).translate(
+            query
+        )
     return query
-
-
-def search_with_tfidf(query, sentences, top_n=5):
-    vectorizer = TfidfVectorizer()
-    sentence_vectors = vectorizer.fit_transform(sentences)
-    query_vector = vectorizer.transform([query])
-    scores = (sentence_vectors * query_vector.T).toarray().flatten()
-    return [sentences[i] for i in scores.argsort()[-top_n:][::-1]]
 
 
 def search_with_bm25(query, sentences, top_n=5):
@@ -65,28 +53,19 @@ def search_with_bm25(query, sentences, top_n=5):
     bm25 = BM25Okapi(tokenized_sentences)
     query_tokens = query.split()
     scores = bm25.get_scores(query_tokens)
-    return [sentences[i] for i in sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_n]]
-
-
-def search_with_similarity(query, sentences, top_n=5):
-    query_embedding = model.encode(query, convert_to_tensor=True)
-    sentence_embeddings = model.encode(sentences, convert_to_tensor=True)
-    similarities = util.pytorch_cos_sim(query_embedding, sentence_embeddings)[0]
-    top_results = similarities.argsort(descending=True)[:top_n]
-    return [sentences[i] for i in top_results]
-
-
-def keyword_search(query, sentences, top_n=5):
-    query_words = query.lower().split()
-    matches = [s for s in sentences if any(q in s.lower() for q in query_words)]
-    return matches[:top_n] if matches else ["No relevant sentences found."]
+    return [
+        sentences[i]
+        for i in sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[
+            :top_n
+        ]
+    ]
 
 
 def download_file(url, save_path):
     try:
         response = requests.get(url)
         response.raise_for_status()
-        with open(save_path, 'wb') as f:
+        with open(save_path, "wb") as f:
             f.write(response.content)
         return save_path
     except requests.exceptions.RequestException as e:
@@ -96,18 +75,18 @@ def download_file(url, save_path):
 
 def get_file_extension_from_mime(mime_type):
     mime_to_ext = {
-        'application/pdf': '.pdf',
-        'text/markdown': '.md',
-        'image/jpeg': '.jpg',
-        'image/png': '.png',
-        'image/jpg': '.jpg'
+        "application/pdf": ".pdf",
+        "text/markdown": ".md",
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/jpg": ".jpg",
     }
-    return mime_to_ext.get(mime_type, '')
+    return mime_to_ext.get(mime_type, "")
 
 
 def extract_relevant_text(prompt, path_of_files, top_n=100, algorithm_name="bm25"):
     sentences = []
-    
+
     for file_path in path_of_files:
         if file_path.startswith("http"):
             temp_file = tempfile.NamedTemporaryFile(delete=False)
@@ -126,16 +105,16 @@ def extract_relevant_text(prompt, path_of_files, top_n=100, algorithm_name="bm25
 
         if file_path.endswith(".pdf"):
             text = extract_text_from_pdf(file_path)
-        
+
         elif file_path.endswith(".md"):
             text = extract_text_from_md(file_path)
-        
+
         elif file_path.lower().endswith((".jpg", ".jpeg", ".png")):
             text = extract_text_from_image(file_path)
-        
+
         else:
             raise ValueError("Unsupported file format: " + file_path)
-        
+
         sentences.extend(split_into_sentences(text))
 
         if file_path.endswith(temp_file.name):
@@ -143,13 +122,4 @@ def extract_relevant_text(prompt, path_of_files, top_n=100, algorithm_name="bm25
 
     translated_query = translate_query(prompt)
 
-    if algorithm_name == "tf-idf":
-        return "\n".join(search_with_tfidf(translated_query, sentences, top_n))
-    if algorithm_name == "bm25":
-        return "\n".join(search_with_bm25(translated_query, sentences, top_n))
-    elif algorithm_name == "context-based":
-        return "\n".join(search_with_similarity(translated_query, sentences, top_n))
-    elif algorithm_name == "keyword":
-        return "\n".join(keyword_search(translated_query, sentences, top_n))
-    else:
-        raise ValueError(f"Unsupported algorithm: {algorithm_name}")
+    return "\n".join(search_with_bm25(translated_query, sentences, top_n))
