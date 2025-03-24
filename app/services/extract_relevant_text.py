@@ -2,10 +2,10 @@ import pytesseract
 from PIL import Image
 import fitz
 import markdown
-# from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup
 import nltk
 from nltk.tokenize import sent_tokenize
-# from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from rank_bm25 import BM25Okapi
 # from sentence_transformers import SentenceTransformer, util
 from langdetect import detect
@@ -15,8 +15,7 @@ import os
 import tempfile
 import mimetypes
 
-# nltk.download("punkt")
-# nltk.download("punkt_tab")
+nltk.download("punkt")
 
 # model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
@@ -53,12 +52,12 @@ def translate_query(query, target_lang="en"):
     return query
 
 
-# def search_with_tfidf(query, sentences, top_n=5):
-#     vectorizer = TfidfVectorizer()
-#     sentence_vectors = vectorizer.fit_transform(sentences)
-#     query_vector = vectorizer.transform([query])
-#     scores = (sentence_vectors * query_vector.T).toarray().flatten()
-#     return [sentences[i] for i in scores.argsort()[-top_n:][::-1]]
+def search_with_tfidf(query, sentences, top_n=5):
+    vectorizer = TfidfVectorizer()
+    sentence_vectors = vectorizer.fit_transform(sentences)
+    query_vector = vectorizer.transform([query])
+    scores = (sentence_vectors * query_vector.T).toarray().flatten()
+    return [sentences[i] for i in scores.argsort()[-top_n:][::-1]]
 
 
 def search_with_bm25(query, sentences, top_n=5):
@@ -77,10 +76,10 @@ def search_with_bm25(query, sentences, top_n=5):
 #     return [sentences[i] for i in top_results]
 
 
-# def keyword_search(query, sentences, top_n=5):
-#     query_words = query.lower().split()
-#     matches = [s for s in sentences if any(q in s.lower() for q in query_words)]
-#     return matches[:top_n] if matches else ["No relevant sentences found."]
+def keyword_search(query, sentences, top_n=5):
+    query_words = query.lower().split()
+    matches = [s for s in sentences if any(q in s.lower() for q in query_words)]
+    return matches[:top_n] if matches else ["No relevant sentences found."]
 
 
 def download_file(url, save_path):
@@ -144,14 +143,13 @@ def extract_relevant_text(prompt, path_of_files, top_n=100, algorithm_name="bm25
 
     translated_query = translate_query(prompt)
 
-    return "\n".join(search_with_bm25(translated_query, sentences, top_n))
-    # if algorithm_name == "tf-idf":
-    #     return "\n".join(search_with_tfidf(translated_query, sentences, top_n))
-    # if algorithm_name == "bm25":
-    #     return "\n".join(search_with_bm25(translated_query, sentences, top_n))
+    if algorithm_name == "tf-idf":
+        return "\n".join(search_with_tfidf(translated_query, sentences, top_n))
+    if algorithm_name == "bm25":
+        return "\n".join(search_with_bm25(translated_query, sentences, top_n))
     # elif algorithm_name == "context-based":
     #     return "\n".join(search_with_similarity(translated_query, sentences, top_n))
-    # elif algorithm_name == "keyword":
-    #     return "\n".join(keyword_search(translated_query, sentences, top_n))
-    # else:
-    #     raise ValueError(f"Unsupported algorithm: {algorithm_name}")
+    elif algorithm_name == "keyword":
+        return "\n".join(keyword_search(translated_query, sentences, top_n))
+    else:
+        raise ValueError(f"Unsupported algorithm: {algorithm_name}")
