@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, request, jsonify
 from app.services.file_upload import upload_file_to_s3
 from app.services.extract_relevant_text import extract_relevant_text
+from app.services.ghibli_service import generate_ghibli_image
 
 response_bp = Blueprint("response", __name__)
 
@@ -35,6 +36,26 @@ def get_extracted_relevant_text():
         response = extract_relevant_text(
             data["prompt"], data["path_of_files"], top_n
         )
+        return jsonify({"success": True, "data": {"response": response}}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "response": str(e)}), 500
+
+
+
+@response_bp.route("/api/v1/ghibli-style-maker", methods=["POST"])
+def ghibli_style_maker():
+    data = request.json
+
+    if not data or "prompt" not in data or "image_url" not in data:
+        return (
+            jsonify(
+                {"status": "error", "response": "Prompt and image_url are required"}
+            ),
+            400,
+        )
+
+    try:
+        response = generate_ghibli_image(data["prompt"], data["image_url"])
         return jsonify({"success": True, "data": {"response": response}}), 200
     except Exception as e:
         return jsonify({"status": "error", "response": str(e)}), 500
