@@ -10,7 +10,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 def generate_ghibli_image(prompt, image_url):
     try:
         ghibli_prompt = (
-            f"{extract_image_info(image_url)}, recreate this scene in Studio Ghibli's signature animation style, incorporating these essential elements: "
+            f"{extract_image_info(image_url)}, {prompt} recreate this scene in Studio Ghibli's signature animation style, incorporating these essential elements: "
             "1. Soft, diffused lighting with gentle highlights and deep, natural shadows to enhance depth and mood. "
             "2. A rich, vibrant color palette with a painterly, watercolor-like softness that brings warmth and harmony. "
             "3. Highly detailed, immersive backgrounds layered with atmospheric perspective to create a deep, living world. "
