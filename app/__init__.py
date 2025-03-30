@@ -10,7 +10,7 @@ def create_app():
     CORS(app, resources={r"/api/*": {
         "origins": [
             "https://codex4learner.com", 
-            "https://openai4pdf.vercel.app", 
+            "https://jahid-ghibli-studio.vercel.app", 
             "http://localhost:3000", 
             "http://127.0.0.1:3000",
         ],
